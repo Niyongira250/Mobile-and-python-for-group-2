@@ -1,4 +1,5 @@
 # Mobile-and-python-for-group-2
+# python is in file named "Students and social media analysis"
 Niyongira, Nadege and Janvier      all projects and locations indicated as following
 
 Our project has 3 parts
