@@ -1,0 +1,307 @@
+# MYSQL Database conceptual scripts
+
+CREATE DATABASE vubapay;
+USE vubapay;
+CREATE TABLE user (
+    userid INT AUTO_INCREMENT PRIMARY KEY,
+    nationalid VARCHAR(20) UNIQUE NOT NULL,
+    paycode VARCHAR(20) UNIQUE NOT NULL,
+    profilepicture VARCHAR(255),
+    accounttype ENUM('normal') DEFAULT 'normal',
+    email VARCHAR(100) UNIQUE NOT NULL,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    phonenumber VARCHAR(20) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    dateofbirth DATE
+);
+CREATE TABLE merchant (
+    merchantid INT AUTO_INCREMENT PRIMARY KEY,
+    nationalid VARCHAR(20) UNIQUE NOT NULL,
+    merchantpaycode VARCHAR(20) UNIQUE NOT NULL,
+    profilepicture VARCHAR(255),
+    businesstype VARCHAR(100),
+    accounttype ENUM('merchant') DEFAULT 'merchant',
+    email VARCHAR(100) UNIQUE NOT NULL,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    phonenumber VARCHAR(20) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    dateofcreation DATE
+);
+
+-- Add balance column to user table
+ALTER TABLE user 
+ADD COLUMN pin INT(6) NOT NULL DEFAULT 123456;
+
+-- Add balance column to merchant table  
+ALTER TABLE merchant 
+ADD COLUMN pin INT(6) NOT NULL DEFAULT 123456;
+
+
+CREATE TABLE notification (
+    notificationid INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100),
+    content TEXT,
+    urgency ENUM('low','medium','high'),
+    designated_to ENUM('user','merchant','all'),
+    date DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE transaction (
+    transactionid BIGINT PRIMARY KEY,
+    date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    transfertype VARCHAR(50),
+    receiverid INT,
+    senderid INT,
+    amount DECIMAL(12,2),
+    charge DECIMAL(12,2),
+    status ENUM('success','failed','dispute')
+);
+CREATE TABLE product (
+    productid BIGINT PRIMARY KEY,
+    productname VARCHAR(100),
+    productpicture VARCHAR(255),
+    amountinstock INT,
+    price DECIMAL(10,2),
+    category VARCHAR(50),
+    merchantid INT,
+    FOREIGN KEY (merchantid) REFERENCES merchant(merchantid)
+);
+CREATE TABLE menu (
+    menuid INT AUTO_INCREMENT PRIMARY KEY,
+    merchantid INT,
+    productid BIGINT,
+    availability BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (merchantid) REFERENCES merchant(merchantid),
+    FOREIGN KEY (productid) REFERENCES product(productid)
+);
+CREATE TABLE etramenu (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    merchantid INT,
+    fieldname VARCHAR(100),
+    FOREIGN KEY (merchantid) REFERENCES merchant(merchantid)
+);
+CREATE TABLE sales (
+    saleid INT AUTO_INCREMENT PRIMARY KEY,
+    merchantid INT,
+    productname VARCHAR(100),
+    date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    amount DECIMAL(10,2),
+    quantity INT,
+    FOREIGN KEY (merchantid) REFERENCES merchant(merchantid)
+);
+
+
+INSERT INTO merchant (
+  nationalid, merchantpaycode, email, username, phonenumber, password, dateofcreation
+) VALUES (
+  '123456789',
+  'MP001',
+  'test@shop.com',
+  'testshop',
+  '0780000000',
+  '1234',
+  CURDATE()
+);
+
+select * from merchant;
+select * from user;
+select * from orders;
+select * from product;
+select * from transaction;
+select * from notification;
+INSERT INTO notification (title, content, urgency, designated_to)
+VALUES (
+    'Rwanda monetary policy', 
+    'as the government of rwanda signed a policy on foreign currency usage in country frw will be the only currency currently in vubapay', 
+    'high', 
+    'all'
+);
+
+ALTER TABLE transaction 
+ADD COLUMN sender_type ENUM('user', 'merchant') NOT NULL DEFAULT 'user',
+ADD COLUMN receiver_type ENUM('user', 'merchant') NOT NULL DEFAULT 'user';
+ALTER TABLE transaction 
+MODIFY COLUMN date DATETIME DEFAULT CURRENT_TIMESTAMP;
+
+INSERT INTO notification (title, content, urgency, designated_to)
+VALUES (
+    'Interface updates', 
+    'Suprise!! our user interface is updated to make it easy for you, enjoy', 
+    'low', 
+    'user'
+);
+
+-- Create orders table in MySQL
+CREATE TABLE orders (
+    orderid BIGINT PRIMARY KEY,
+    order_number VARCHAR(20) UNIQUE NOT NULL,
+    customer_id INT NOT NULL,
+    customer_type VARCHAR(10) NOT NULL CHECK (customer_type IN ('user', 'merchant')),
+    customer_name VARCHAR(100) NOT NULL,
+    merchant_id INT NOT NULL,
+    merchant_name VARCHAR(100) NOT NULL,
+    table_name VARCHAR(50),
+    items JSON NOT NULL,
+    custom_fields JSON DEFAULT (JSON_OBJECT()),
+    total_amount DECIMAL(12, 2) NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_customer (customer_id, customer_type),
+    INDEX idx_merchant (merchant_id),
+    INDEX idx_status (status),
+    INDEX idx_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE orders 
+MODIFY COLUMN merchant_id INT NOT NULL;
+
+select * from orders;
+
+ALTER TABLE orders 
+ADD COLUMN is_paid BOOLEAN DEFAULT FALSE AFTER status,
+ADD COLUMN payment_date TIMESTAMP NULL AFTER is_paid,
+ADD COLUMN transaction_id BIGINT NULL AFTER payment_date,
+ADD COLUMN tip_amount DECIMAL(12, 2) DEFAULT 0.00 AFTER transaction_id,
+ADD COLUMN customer_message TEXT AFTER tip_amount,
+ADD COLUMN merchant_paycode VARCHAR(20) AFTER customer_message;
+
+ALTER TABLE orders 
+ADD INDEX idx_is_paid (is_paid),
+ADD INDEX idx_payment_date (payment_date),
+ADD INDEX idx_transaction (transaction_id);
+
+-- Add composite index for common queries
+ALTER TABLE orders 
+ADD INDEX idx_unpaid_orders (status, is_paid);
+
+DELIMITER $$
+
+CREATE TRIGGER before_order_payment_update
+BEFORE UPDATE ON orders
+FOR EACH ROW
+BEGIN
+    IF NEW.is_paid = TRUE AND OLD.is_paid = FALSE THEN
+        SET NEW.payment_date = CURRENT_TIMESTAMP;
+    ELSEIF NEW.is_paid = FALSE AND OLD.is_paid = TRUE THEN
+        SET NEW.payment_date = NULL;
+    END IF;
+END$$
+
+DELIMITER ;
+
+-- Create a view for unpaid delivered orders (for PayOrdersPage)
+CREATE VIEW unpaid_delivered_orders AS
+SELECT 
+    orderid,
+    order_number,
+    customer_id,
+    customer_type,
+    customer_name,
+    merchant_id,
+    merchant_name,
+    table_name,
+    items,
+    custom_fields,
+    total_amount,
+    status,
+    created_at,
+    updated_at
+FROM orders
+WHERE status = 'delivered' AND is_paid = FALSE
+ORDER BY created_at DESC;
+
+-- Create a view for merchant's unpaid orders
+-- Create a view for all unpaid delivered orders
+CREATE VIEW merchant_unpaid_orders AS
+SELECT 
+    orderid,
+    order_number,
+    customer_id,
+    customer_type,
+    customer_name,
+    merchant_id,
+    merchant_name,
+    total_amount,
+    status,
+    created_at,
+    is_paid
+FROM orders
+WHERE status = 'delivered' AND is_paid = FALSE
+ORDER BY created_at DESC;
+
+-- When querying, filter by merchant_id in your application:
+-- SELECT * FROM merchant_unpaid_orders WHERE merchant_id = 123;
+
+-- Or create separate views for each merchant (not recommended for many merchants)
+-- CREATE VIEW merchant_123_unpaid_orders AS
+-- SELECT * FROM orders 
+-- WHERE merchant_id = 123 AND status = 'delivered' AND is_paid = FALSE
+-- ORDER BY created_at DESC;
+
+DELIMITER $$
+
+CREATE PROCEDURE mark_order_as_paid(
+    IN p_order_id BIGINT,
+    IN p_transaction_id BIGINT,
+    IN p_tip_amount DECIMAL(12, 2),
+    IN p_customer_message TEXT
+)
+BEGIN
+    DECLARE v_merchant_id INT;
+    DECLARE v_total_amount DECIMAL(12, 2);
+    
+    -- Get merchant ID and total amount
+    SELECT merchant_id, total_amount 
+    INTO v_merchant_id, v_total_amount
+    FROM orders 
+    WHERE orderid = p_order_id AND status = 'delivered' AND is_paid = FALSE;
+    
+    IF v_merchant_id IS NOT NULL THEN
+        -- Update order
+        UPDATE orders 
+        SET 
+            is_paid = TRUE,
+            payment_date = CURRENT_TIMESTAMP,
+            transaction_id = p_transaction_id,
+            tip_amount = p_tip_amount,
+            customer_message = p_customer_message,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE orderid = p_order_id;
+        
+        -- Insert sales records (assuming you have a sales table)
+        INSERT INTO sales (merchantid, date, amount, quantity, productname)
+        SELECT 
+            v_merchant_id,
+            CURRENT_TIMESTAMP,
+            total_amount + p_tip_amount,
+            1,
+            CONCAT('Order #', order_number)
+        FROM orders 
+        WHERE orderid = p_order_id;
+        
+        SELECT 1 AS success, 'Order marked as paid' AS message;
+    ELSE
+        SELECT 0 AS success, 'Order not found or already paid' AS message;
+    END IF;
+END$$
+
+DELIMITER ;
+
+-- Check if orders have correct merchant IDs
+SELECT 
+    o.orderid,
+    o.order_number,
+    o.customer_name,
+    o.merchant_id,
+    m.username as merchant_username,
+    o.status
+FROM orders o
+LEFT JOIN merchant m ON o.merchant_id = m.merchantid
+WHERE o.status IN ('pending', 'confirmed', 'preparing', 'ready')
+ORDER BY o.created_at DESC;
+
+
+select * from merchant;
+select * from user;
+select * from orders;
+select * from product;
