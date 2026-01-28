@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        
+
+        {
+            "name": "$RY5GV98",
+            "cwd": "$RECYCLE.BIN\\S-1-5-21-3242619595-3370954222-1934466243-1001\\$RY5GV98",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flutter",
+            "cwd": "src - Copy\\src - Copy\\flutter",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flutter",
+            "cwd": "$RECYCLE.BIN\\S-1-5-21-3242619595-3370954222-1934466243-1001\\$RHV3DIV.4-stable\\flutter",
+            "request": "launch",
+            "type": "dart"
+        }
+    ]
+}
