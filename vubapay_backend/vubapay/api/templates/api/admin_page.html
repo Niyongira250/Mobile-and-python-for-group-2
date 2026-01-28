@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CRUD Operations</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background-color: #ff7f00;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+            font-weight: 600;
+        }
+        .btn-orange {
+            background-color: #ff7f00;
+            color: white;
+            border: none;
+            font-weight: 500;
+        }
+        .btn-orange:hover {
+            background-color: #e67300;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .btn-orange-outline {
+            background-color: transparent;
+            color: #ff7f00;
+            border: 2px solid #ff7f00;
+        }
+        .btn-orange-outline:hover {
+            background-color: #ff7f00;
+            color: white;
+        }
+        .card-header {
+            background-color: #ff7f00;
+            color: white;
+            font-weight: 600;
+            border: none;
+        }
+        .table thead {
+            background-color: #ff7f00;
+            color: white;
+        }
+        .table th {
+            border-top: none;
+            font-weight: 600;
+        }
+        .stat-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card .card-body {
+            padding: 25px;
+        }
+        .stat-icon {
+            font-size: 2.5rem;
+            color: #ff7f00;
+            margin-bottom: 15px;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .tab-content {
+            background: white;
+            border-radius: 0 0 10px 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .nav-tabs .nav-link {
+            color: #666;
+            font-weight: 500;
+            border: none;
+            border-bottom: 3px solid transparent;
+        }
+        .nav-tabs .nav-link.active {
+            color: #ff7f00;
+            background-color: transparent;
+            border-bottom: 3px solid #ff7f00;
+        }
+        .search-box {
+            max-width: 400px;
+        }
+        .action-buttons .btn {
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .modal-header {
+            background-color: #ff7f00;
+            color: white;
+        }
+        .badge-orange {
+            background-color: #ff7f00;
+            color: white;
+        }
+        .badge-success {
+            background-color: #28a745;
+        }
+        .badge-warning {
+            background-color: #ffc107;
+        }
+        .badge-danger {
+            background-color: #dc3545;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(255, 127, 0, 0.05);
+        }
+        .form-control:focus {
+            border-color: #ff7f00;
+            box-shadow: 0 0 0 0.25rem rgba(255, 127, 0, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-cogs me-2"></i>Admin Dashboard
+            </a>
+            <form class="d-flex search-box" method="get" action="/search-by-paycode/">
+                <input class="form-control me-2" name="paycode" type="search" 
+                       placeholder="Search by Paycode" aria-label="Search">
+                <button class="btn btn-orange" type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card stat-card">
+                    <div class="card-body text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-number">{{ users_count }}</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card stat-card">
+                    <div class="card-body text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="stat-number">{{ merchants_count }}</div>
+                        <div class="stat-label">Merchants</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card stat-card">
+                    <div class="card-body text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-number">{{ orders_count }}</div>
+                        <div class="stat-label">Orders</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card stat-card">
+                    <div class="card-body text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-number">{{ products_count }}</div>
+                        <div class="stat-label">Products</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card stat-card">
+                    <div class="card-body text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="stat-number">{{ transactions_count }}</div>
+                        <div class="stat-label">Transactions</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card stat-card">
+                    <div class="card-body text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-concierge-bell"></i>
+                        </div>
+                        <div class="stat-number">{{ services_count }}</div>
+                        <div class="stat-label">Services</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs for different sections -->
+        <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="users-tab" data-bs-toggle="tab" 
+                        data-bs-target="#users" type="button" role="tab">
+                    <i class="fas fa-users me-1"></i> Users
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="merchants-tab" data-bs-toggle="tab" 
+                        data-bs-target="#merchants" type="button" role="tab">
+                    <i class="fas fa-store me-1"></i> Merchants
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="orders-tab" data-bs-toggle="tab" 
+                        data-bs-target="#orders" type="button" role="tab">
+                    <i class="fas fa-shopping-cart me-1"></i> Orders
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="products-tab" data-bs-toggle="tab" 
+                        data-bs-target="#products" type="button" role="tab">
+                    <i class="fas fa-box me-1"></i> Products
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="services-tab" data-bs-toggle="tab" 
+                        data-bs-target="#services" type="button" role="tab">
+                    <i class="fas fa-concierge-bell me-1"></i> Services
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" 
+                        data-bs-target="#transactions" type="button" role="tab">
+                    <i class="fas fa-exchange-alt me-1"></i> Transactions
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="adminTabsContent">
+            <!-- Users Tab -->
+            <div class="tab-pane fade show active" id="users" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>User Management</h4>
+                    <button class="btn btn-orange" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        <i class="fas fa-plus me-1"></i> Add User
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Paycode</th>
+                                <th>Balance</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.userid }}</td>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.phonenumber }}</td>
+                                <td><span class="badge bg-orange">{{ user.paycode }}</span></td>
+                                <td>{{ user.balance }} RWF</td>
+                                <td><span class="badge bg-info">{{ user.accounttype }}</span></td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-orange-outline" 
+                                            onclick="editUser('{{ user.userid }}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" 
+                                            onclick="deleteEntry('user', '{{ user.userid }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center">No users found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Merchants Tab -->
+            <div class="tab-pane fade" id="merchants" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>Merchant Management</h4>
+                    <button class="btn btn-orange" data-bs-toggle="modal" data-bs-target="#addMerchantModal">
+                        <i class="fas fa-plus me-1"></i> Add Merchant
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Business Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Paycode</th>
+                                <th>Business Type</th>
+                                <th>Balance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for merchant in merchants %}
+                            <tr>
+                                <td>{{ merchant.merchantid }}</td>
+                                <td>{{ merchant.username }}</td>
+                                <td>{{ merchant.email }}</td>
+                                <td>{{ merchant.phonenumber }}</td>
+                                <td><span class="badge bg-orange">{{ merchant.merchantpaycode }}</span></td>
+                                <td>{{ merchant.businesstype }}</td>
+                                <td>{{ merchant.balance }} RWF</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-orange-outline">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" 
+                                            onclick="deleteEntry('merchant', '{{ merchant.merchantid }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center">No merchants found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div class="tab-pane fade" id="orders" role="tabpanel">
+                <h4>Order Management</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Order Number</th>
+                                <th>Customer</th>
+                                <th>Merchant</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Payment</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td>{{ order.orderid }}</td>
+                                <td>{{ order.order_number }}</td>
+                                <td>{{ order.customer_name }}</td>
+                                <td>{{ order.merchant_name }}</td>
+                                <td>{{ order.total_amount }} RWF</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if order.status == 'pending' %}bg-warning
+                                        {% elif order.status == 'confirmed' %}bg-info
+                                        {% elif order.status == 'preparing' %}bg-primary
+                                        {% elif order.status == 'ready' %}bg-success
+                                        {% elif order.status == 'delivered' %}bg-success
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ order.status|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if order.is_paid %}
+                                    <span class="badge bg-success">Paid</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Unpaid</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-orange-outline">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" 
+                                            onclick="deleteEntry('order', '{{ order.orderid }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center">No orders found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Products Tab -->
+            <div class="tab-pane fade" id="products" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>Product Management</h4>
+                    <button class="btn btn-orange" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                        <i class="fas fa-plus me-1"></i> Add Product
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Product Name</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Category</th>
+                                <th>Merchant ID</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products %}
+                            <tr>
+                                <td>{{ product.productid }}</td>
+                                <td>{{ product.productname }}</td>
+                                <td>{{ product.price }} RWF</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if product.amountinstock > 10 %}bg-success
+                                        {% elif product.amountinstock > 0 %}bg-warning
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ product.amountinstock }}
+                                    </span>
+                                </td>
+                                <td>{{ product.category }}</td>
+                                <td>{{ product.merchantid }}</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-orange-outline">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" 
+                                            onclick="deleteEntry('product', '{{ product.productid }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">No products found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Services Tab -->
+            <div class="tab-pane fade" id="services" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>Service Management</h4>
+                    <button class="btn btn-orange" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                        <i class="fas fa-plus me-1"></i> Add Service
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Field Name</th>
+                                <th>Merchant ID</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in services %}
+                            <tr>
+                                <td>{{ service.id }}</td>
+                                <td>{{ service.fieldname }}</td>
+                                <td>{{ service.merchantid }}</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-orange-outline">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" 
+                                            onclick="deleteEntry('service', '{{ service.id }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">No services found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Transactions Tab -->
+            <div class="tab-pane fade" id="transactions" role="tabpanel">
+                <h4>Transaction History</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Date</th>
+                                <th>Sender ID</th>
+                                <th>Receiver ID</th>
+                                <th>Amount</th>
+                                <th>Charge</th>
+                                <th>Status</th>
+                                <th>Sender Type</th>
+                                <th>Receiver Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in transactions %}
+                            <tr>
+                                <td>{{ transaction.transactionid }}</td>
+                                <td>{{ transaction.date|date:"Y-m-d H:i" }}</td>
+                                <td>{{ transaction.senderid }}</td>
+                                <td>{{ transaction.receiverid }}</td>
+                                <td>{{ transaction.amount }} RWF</td>
+                                <td>{{ transaction.charge }} RWF</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if transaction.status == 'success' %}bg-success
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ transaction.status }}
+                                    </span>
+                                </td>
+                                <td>{{ transaction.sender_type|title }}</td>
+                                <td>{{ transaction.receiver_type|title }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center">No transactions found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="{% url 'create_entry' %}" id="addUserForm">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="hidden" name="type" value="user">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter phone number" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="national_id" class="form-label">National ID</label>
+                            <input type="text" class="form-control" id="national_id" name="national_id" placeholder="Enter national ID" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pin" class="form-label">PIN</label>
+                            <input type="text" class="form-control" id="pin" name="pin" maxlength="6" placeholder="Enter PIN" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="balance" class="form-label">Initial Balance (RWF)</label>
+                            <input type="number" class="form-control" id="balance" name="balance" value="5000" placeholder="Enter balance" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-orange">Create User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Merchant Modal -->
+    <div class="modal fade" id="addMerchantModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Merchant</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="{% url 'create_entry' %}" id="addMerchantForm">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="hidden" name="type" value="merchant">
+                        <div class="mb-3">
+                            <label for="merchant_username" class="form-label">Business Name</label>
+                            <input type="text" class="form-control" id="merchant_username" name="username" placeholder="Enter business name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="merchant_email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="merchant_email" name="email" placeholder="Enter email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="merchant_phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="merchant_phone" name="phone" placeholder="Enter phone number" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="business_type" class="form-label">Business Type</label>
+                            <input type="text" class="form-control" id="business_type" name="business_type" placeholder="Enter business type" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="merchant_national_id" class="form-label">National ID</label>
+                            <input type="text" class="form-control" id="merchant_national_id" name="national_id" placeholder="Enter national ID" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="merchant_password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="merchant_password" name="password" placeholder="Enter password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="merchant_pin" class="form-label">PIN</label>
+                            <input type="text" class="form-control" id="merchant_pin" name="pin" maxlength="6" placeholder="Enter PIN" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="merchant_balance" class="form-label">Initial Balance (RWF)</label>
+                            <input type="number" class="form-control" id="merchant_balance" name="balance" value="5000" placeholder="Enter balance" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-orange">Create Merchant</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Product</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="{% url 'create_entry' %}" id="addProductForm">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="hidden" name="type" value="product">
+                        <div class="mb-3">
+                            <label for="product_name" class="form-label">Product Name</label>
+                            <input type="text" class="form-control" id="product_name" name="product_name" placeholder="Enter product name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Price (RWF)</label>
+                            <input type="number" class="form-control" id="price" name="price" step="0.01" placeholder="Enter price" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="amount_in_stock" class="form-label">Stock Quantity</label>
+                            <input type="number" class="form-control" id="amount_in_stock" name="amount_in_stock" placeholder="Enter stock quantity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <input type="text" class="form-control" id="category" name="category" placeholder="Enter category" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="merchant_id" class="form-label">Merchant ID</label>
+                            <input type="number" class="form-control" id="merchant_id" name="merchant_id" placeholder="Enter merchant ID" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-orange">Create Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Service Modal -->
+    <div class="modal fade" id="addServiceModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Service</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="{% url 'create_entry' %}" id="addServiceForm">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="hidden" name="type" value="service">
+                        <div class="mb-3">
+                            <label for="fieldname" class="form-label">Field Name</label>
+                            <input type="text" class="form-control" id="fieldname" name="fieldname" placeholder="Enter field name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="merchantid" class="form-label">Merchant ID</label>
+                            <input type="number" class="form-control" id="merchantid" name="merchantid" placeholder="Enter merchant ID" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-orange">Create Service</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Function to delete entries
+        function deleteEntry(type, id) {
+            if (confirm(`Are you sure you want to delete this ${type}?`)) {
+                fetch(`/api/delete-entry/${type}/${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted successfully!`);
+                        location.reload();
+                    } else {
+                        alert('Error deleting item.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting item.');
+                });
+            }
+        }
+
+        // Function to edit user
+        function editUser(userId) {
+            alert(`Edit user with ID: ${userId}\nThis would open an edit modal with pre-filled data.`);
+        }
+
+        // Function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Handle form submissions with AJAX
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle add user form
+            const addUserForm = document.getElementById('addUserForm');
+            if (addUserForm) {
+                addUserForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    
+                    fetch('/api/create-entry/', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error creating user');
+                    });
+            }
+
+            // Handle other forms similarly
+            const forms = ['addMerchantForm', 'addProductForm', 'addServiceForm'];
+            forms.forEach(formId => {
+                const form = document.getElementById(formId);
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const formData = new FormData(this);
+                        
+                        fetch('/api/create-entry/', {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-CSRFToken': getCookie('csrftoken')
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert(data.message);
+                                location.reload();
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Error creating item');
+                        });
+                    });
+                }
+            });
+        });
+
+        // Auto-refresh data every 30 seconds
+        setInterval(() => {
+            // Only refresh if no modal is open
+            if (!document.querySelector('.modal.show')) {
+                console.log('Auto-refreshing...');
+                location.reload();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

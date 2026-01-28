@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Services Platform</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-orange: #FF6B35;
+            --secondary-green: #00B894;
+            --dark-bg: #1a1a2e;
+            --card-bg: #162447;
+            --text-light: #ffffff;
+            --text-muted: #b0b0b0;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #e17055;
+            --info: #0984e3;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #162447 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-orange);
+            border-radius: 4px;
+        }
+        
+        /* Navbar */
+        .navbar {
+            background: rgba(26, 26, 46, 0.95);
+            border-bottom: 2px solid var(--primary-orange);
+            padding: 15px 0;
+        }
+        
+        .navbar-brand {
+            color: var(--text-light) !important;
+            font-weight: 700;
+            font-size: 1.8rem;
+        }
+        
+        .navbar-brand span {
+            color: var(--primary-orange);
+        }
+        
+        /* Dashboard Cards */
+        .dashboard-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            border: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-icon {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 15px;
+        }
+        
+        .card-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+        
+        .card-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Data Tables */
+        .data-table {
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .data-table th {
+            background: rgba(255, 107, 53, 0.1);
+            color: var(--primary-orange);
+            font-weight: 600;
+            border: none;
+            padding: 15px;
+        }
+        
+        .data-table td {
+            border: none;
+            padding: 12px 15px;
+            color: var(--text-light);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .data-table tbody tr:hover {
+            background: rgba(255, 107, 53, 0.05);
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-success {
+            background: rgba(0, 184, 148, 0.2);
+            color: var(--success);
+        }
+        
+        .status-pending {
+            background: rgba(253, 203, 110, 0.2);
+            color: var(--warning);
+        }
+        
+        .status-cancelled {
+            background: rgba(225, 112, 85, 0.2);
+            color: var(--danger);
+        }
+        
+        /* Buttons */
+        .btn-orange {
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-orange:hover {
+            background: #ff8c42;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-green {
+            background: var(--secondary-green);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-green:hover {
+            background: #00d8a7;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Search Box */
+        .search-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--primary-orange);
+            border-radius: 50px;
+            padding: 10px 20px;
+            color: white;
+            width: 400px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.3);
+            width: 450px;
+        }
+        
+        /* Modal */
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--primary-orange);
+            border-radius: 15px;
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid rgba(255, 107, 53, 0.2);
+        }
+        
+        .modal-title {
+            color: var(--text-light);
+        }
+        
+        .modal-body {
+            color: var(--text-muted);
+        }
+        
+        /* Charts */
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            height: 350px;
+        }
+        
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--primary-orange);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--secondary-green);
+            border: 3px solid var(--card-bg);
+        }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .search-box {
+                width: 100%;
+            }
+            
+            .search-box:focus {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-shield-alt"></i> Admin<span>Dashboard</span>
+            </a>
+            
+            <!-- Search Box -->
+            <div class="d-flex align-items-center ms-auto me-3">
+                <input type="text" 
+                       class="search-box" 
+                       placeholder="Search users, merchants, orders..."
+                       id="globalSearch">
+                <button class="btn btn-orange ms-2" onclick="performSearch()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            
+            <!-- Live Time Display -->
+            <div class="text-center me-3">
+                <div id="liveDateTime" class="fw-bold" style="color: var(--primary-orange);"></div>
+                <small class="text-muted">Server Time</small>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        {% block content %}
+        {% endblock %}
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Live Time Display
+        function updateDateTime() {
+            const now = new Date();
+            const dateTimeStr = now.toLocaleString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('liveDateTime').textContent = dateTimeStr;
+        }
+        
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+        
+        // Global Search Functionality
+        function performSearch() {
+            const query = document.getElementById('globalSearch').value.trim();
+            if (!query) return;
+            
+            // Show loading
+            const searchBtn = document.querySelector('.btn-orange');
+            const originalHtml = searchBtn.innerHTML;
+            searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            // Simulate API call - In real implementation, call your Django view
+            setTimeout(() => {
+                alert(`Searching for: ${query}\n\nThis would trigger a database search across all tables.`);
+                searchBtn.innerHTML = originalHtml;
+            }, 500);
+        }
+        
+        // Initialize Charts
+        function initCharts() {
+            // Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart');
+            if (revenueCtx) {
+                new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Revenue (RWF)',
+                            data: [1200000, 1900000, 3000000, 2500000, 4200000, 3800000],
+                            borderColor: '#FF6B35',
+                            backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#ffffff'
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#b0b0b0',
+                                    callback: function(value) {
+                                        return 'RWF ' + (value / 1000000).toFixed(1) + 'M';
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#b0b0b0'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // User Distribution Chart
+            const userCtx = document.getElementById('userChart');
+            if (userCtx) {
+                new Chart(userCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Users', 'Merchants'],
+                        datasets: [{
+                            data: [300, 150],
+                            backgroundColor: [
+                                '#FF6B35',
+                                '#00B894'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#162447'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#ffffff'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            
+            // Add animation to cards
+            const cards = document.querySelectorAll('.dashboard-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('fade-in');
+            });
+        });
+    </script>
+    
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>

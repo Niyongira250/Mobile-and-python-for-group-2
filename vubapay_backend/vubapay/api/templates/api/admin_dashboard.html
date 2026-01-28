@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Services Platform</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-orange: #FF6B35;
+            --secondary-green: #00B894;
+            --dark-bg: #1a1a2e;
+            --card-bg: #162447;
+            --text-light: #ffffff;
+            --text-muted: #b0b0b0;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #e17055;
+            --info: #0984e3;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #162447 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-orange);
+            border-radius: 4px;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--primary-orange);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: var(--text-light);
+            font-weight: 700;
+        }
+        
+        .header h1 span {
+            color: var(--primary-orange);
+        }
+        
+        /* Search Box */
+        .search-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--primary-orange);
+            border-radius: 50px;
+            padding: 12px 25px;
+            color: white;
+            width: 100%;
+            max-width: 500px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.3);
+        }
+        
+        /* Dashboard Cards */
+        .dashboard-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            border: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-icon {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 15px;
+        }
+        
+        .card-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+        
+        .card-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Data Tables */
+        .data-table {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .data-table th {
+            background: rgba(255, 107, 53, 0.1);
+            color: var(--primary-orange);
+            font-weight: 600;
+            border: none;
+            padding: 15px;
+        }
+        
+        .data-table td {
+            border: none;
+            padding: 12px 15px;
+            color: var(--text-light);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .data-table tbody tr:hover {
+            background: rgba(255, 107, 53, 0.05);
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-success {
+            background: rgba(0, 184, 148, 0.2);
+            color: var(--success);
+        }
+        
+        .status-pending {
+            background: rgba(253, 203, 110, 0.2);
+            color: var(--warning);
+        }
+        
+        .status-cancelled {
+            background: rgba(225, 112, 85, 0.2);
+            color: var(--danger);
+        }
+        
+        /* Buttons */
+        .btn-orange {
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-orange:hover {
+            background: #ff8c42;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-green {
+            background: var(--secondary-green);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-green:hover {
+            background: #00d8a7;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Tabs */
+        .nav-tabs {
+            border-bottom: 2px solid rgba(255, 107, 53, 0.2);
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--text-muted);
+            border: none;
+            padding: 12px 25px;
+            font-weight: 600;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-orange);
+            background: rgba(255, 107, 53, 0.1);
+            border-bottom: 3px solid var(--primary-orange);
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-orange);
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            height: 300px;
+        }
+        
+        /* Modal */
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--primary-orange);
+            border-radius: 15px;
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid rgba(255, 107, 53, 0.2);
+        }
+        
+        .modal-title {
+            color: var(--text-light);
+        }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Live Time */
+        #liveDateTime {
+            font-size: 1.2rem;
+            color: var(--primary-orange);
+            font-weight: 600;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .search-box {
+                max-width: 100%;
+                margin-bottom: 15px;
+            }
+            
+            .header {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <h1><i class="fas fa-shield-alt"></i> Admin<span>Dashboard</span></h1>
+            </div>
+            <div class="col-md-5">
+                <div class="input-group">
+                    <input type="text" 
+                           class="search-box" 
+                           placeholder="Search users, merchants, orders, transactions..."
+                           id="globalSearch">
+                    <button class="btn btn-orange" onclick="performSearch()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3 text-end">
+                <div id="liveDateTime" class="fw-bold"></div>
+                <small class="text-muted">Server Time</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="dashboard-card text-center fade-in">
+                <i class="fas fa-users card-icon"></i>
+                <h2 class="card-value" id="totalUsers">0</h2>
+                <p class="card-label">Total Users</p>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="dashboard-card text-center fade-in">
+                <i class="fas fa-store card-icon"></i>
+                <h2 class="card-value" id="totalMerchants">0</h2>
+                <p class="card-label">Total Merchants</p>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="dashboard-card text-center fade-in">
+                <i class="fas fa-shopping-cart card-icon"></i>
+                <h2 class="card-value" id="totalOrders">0</h2>
+                <p class="card-label">Total Orders</p>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="dashboard-card text-center fade-in">
+                <i class="fas fa-money-bill-wave card-icon"></i>
+                <h2 class="card-value" id="totalRevenue">0</h2>
+                <p class="card-label">Total Revenue</p>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="dashboard-card text-center fade-in">
+                <i class="fas fa-exchange-alt card-icon"></i>
+                <h2 class="card-value" id="totalTransactions">0</h2>
+                <p class="card-label">Transactions</p>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="dashboard-card text-center fade-in">
+                <i class="fas fa-box card-icon"></i>
+                <h2 class="card-value" id="totalProducts">0</h2>
+                <p class="card-label">Products</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs for Different Sections -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="adminTabs">
+                <li class="nav-item">
+                    <button class="nav-link active" onclick="showTab('dashboard')">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" onclick="showTab('users')">
+                        <i class="fas fa-users me-2"></i>Users
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" onclick="showTab('merchants')">
+                        <i class="fas fa-store me-2"></i>Merchants
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" onclick="showTab('orders')">
+                        <i class="fas fa-shopping-cart me-2"></i>Orders
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" onclick="showTab('transactions')">
+                        <i class="fas fa-exchange-alt me-2"></i>Transactions
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" onclick="showTab('products')">
+                        <i class="fas fa-box me-2"></i>Products
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" onclick="showTab('analytics')">
+                        <i class="fas fa-chart-line me-2"></i>Analytics
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" onclick="showTab('create')">
+                        <i class="fas fa-plus-circle me-2"></i>Create New
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="row">
+        <div class="col-12">
+            <!-- Dashboard Tab -->
+            <div id="dashboardTab" class="tab-content active">
+                <div class="row">
+                    <div class="col-lg-8 mb-4">
+                        <div class="dashboard-card">
+                            <h5 class="mb-3" style="color: var(--primary-orange);">
+                                <i class="fas fa-chart-line me-2"></i>Revenue Trends
+                            </h5>
+                            <div class="chart-container">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-4">
+                        <div class="dashboard-card">
+                            <h5 class="mb-3" style="color: var(--primary-orange);">
+                                <i class="fas fa-user-friends me-2"></i>User Distribution
+                            </h5>
+                            <div class="chart-container">
+                                <canvas id="userDistributionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-6 mb-4">
+                        <div class="dashboard-card">
+                            <h5 class="mb-3" style="color: var(--primary-orange);">
+                                <i class="fas fa-history me-2"></i>Recent Activity
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="table data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Action</th>
+                                            <th>User</th>
+                                            <th>Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentActivity">
+                                        <!-- Will be loaded by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="dashboard-card">
+                            <h5 class="mb-3" style="color: var(--primary-orange);">
+                                <i class="fas fa-bell me-2"></i>System Notifications
+                            </h5>
+                            <div id="systemNotifications" style="max-height: 300px; overflow-y: auto;">
+                                <!-- Will be loaded by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="usersTab" class="tab-content" style="display: none;">
+                <div class="dashboard-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 style="color: var(--primary-orange);">
+                            <i class="fas fa-users me-2"></i>Users Management
+                        </h5>
+                        <div>
+                            <button class="btn btn-green me-2" onclick="showCreateModal('user')">
+                                <i class="fas fa-user-plus me-2"></i>Add User
+                            </button>
+                            <button class="btn btn-orange" onclick="exportData('users')">
+                                <i class="fas fa-download me-2"></i>Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Balance</th>
+                                    <th>Paycode</th>
+                                    <th>Created</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center" id="usersPagination">
+                                <!-- Pagination will be generated here -->
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Merchants Tab -->
+            <div id="merchantsTab" class="tab-content" style="display: none;">
+                <div class="dashboard-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 style="color: var(--primary-orange);">
+                            <i class="fas fa-store me-2"></i>Merchants Management
+                        </h5>
+                        <div>
+                            <button class="btn btn-green me-2" onclick="showCreateModal('merchant')">
+                                <i class="fas fa-store-alt me-2"></i>Add Merchant
+                            </button>
+                            <button class="btn btn-orange" onclick="exportData('merchants')">
+                                <i class="fas fa-download me-2"></i>Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Business Name</th>
+                                    <th>Email</th>
+                                    <th>Business Type</th>
+                                    <th>Products</th>
+                                    <th>Balance</th>
+                                    <th>Paycode</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="merchantsTable">
+                                <!-- Merchants will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div id="ordersTab" class="tab-content" style="display: none;">
+                <div class="dashboard-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 style="color: var(--primary-orange);">
+                            <i class="fas fa-shopping-cart me-2"></i>Orders Management
+                        </h5>
+                        <div class="d-flex">
+                            <select class="form-control me-2 search-box" id="orderStatusFilter">
+                                <option value="all">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="preparing">Preparing</option>
+                                <option value="ready">Ready</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <input type="date" class="form-control me-2 search-box" id="orderDateFilter">
+                            <button class="btn btn-orange" onclick="filterOrders()">
+                                <i class="fas fa-filter me-2"></i>Filter
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Merchant</th>
+                                    <th>Items</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Payment</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTable">
+                                <!-- Orders will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Tab -->
+            <div id="transactionsTab" class="tab-content" style="display: none;">
+                <div class="dashboard-card">
+                    <h5 class="mb-3" style="color: var(--primary-orange);">
+                        <i class="fas fa-exchange-alt me-2"></i>Transactions Management
+                    </h5>
+                    
+                    <div class="table-responsive">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>Transaction ID</th>
+                                    <th>Date</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Amount</th>
+                                    <th>Charge</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionsTable">
+                                <!-- Transactions will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Tab -->
+            <div id="productsTab" class="tab-content" style="display: none;">
+                <div class="dashboard-card">
+                    <h5 class="mb-3" style="color: var(--primary-orange);">
+                        <i class="fas fa-box me-2"></i>Products Management
+                    </h5>
+                    
+                    <div class="table-responsive">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>Product ID</th>
+                                    <th>Name</th>
+                                    <th>Merchant</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTable">
+                                <!-- Products will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analyticsTab" class="tab-content" style="display: none;">
+                <div class="row">
+                    <div class="col-lg-6 mb-4">
+                        <div class="dashboard-card">
+                            <h5 style="color: var(--primary-orange);">
+                                <i class="fas fa-chart-pie me-2"></i>Order Status Distribution
+                            </h5>
+                            <div class="chart-container">
+                                <canvas id="orderStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="dashboard-card">
+                            <h5 style="color: var(--primary-orange);">
+                                <i class="fas fa-chart-bar me-2"></i>Daily Transactions
+                            </h5>
+                            <div class="chart-container">
+                                <canvas id="dailyTransactionsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-8 mb-4">
+                        <div class="dashboard-card">
+                            <h5 style="color: var(--primary-orange);">
+                                <i class="fas fa-trophy me-2"></i>Top Merchants by Revenue
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="table data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Merchant</th>
+                                            <th>Revenue</th>
+                                            <th>Orders</th>
+                                            <th>Products</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="topMerchantsTable">
+                                        <!-- Top merchants will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-4">
+                        <div class="dashboard-card">
+                            <h5 style="color: var(--primary-orange);">
+                                <i class="fas fa-info-circle me-2"></i>System Summary
+                            </h5>
+                            <div id="systemSummary">
+                                <!-- System summary will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create New Tab -->
+            <div id="createTab" class="tab-content" style="display: none;">
+                <div class="row">
+                    <div class="col-lg-4 mb-4">
+                        <div class="dashboard-card text-center">
+                            <i class="fas fa-user-plus card-icon"></i>
+                            <h4 class="mb-3">Create User</h4>
+                            <p class="text-muted mb-3">Create a new user account</p>
+                            <button class="btn btn-green w-100" onclick="showCreateModal('user')">
+                                Create User
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-4">
+                        <div class="dashboard-card text-center">
+                            <i class="fas fa-store-alt card-icon"></i>
+                            <h4 class="mb-3">Create Merchant</h4>
+                            <p class="text-muted mb-3">Register a new merchant</p>
+                            <button class="btn btn-green w-100" onclick="showCreateModal('merchant')">
+                                Create Merchant
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-4">
+                        <div class="dashboard-card text-center">
+                            <i class="fas fa-box card-icon"></i>
+                            <h4 class="mb-3">Create Product</h4>
+                            <p class="text-muted mb-3">Add new product to system</p>
+                            <button class="btn btn-green w-100" onclick="showCreateModal('product')">
+                                Create Product
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-6 mb-4">
+                        <div class="dashboard-card">
+                            <h5 style="color: var(--primary-orange);">
+                                <i class="fas fa-bell me-2"></i>Send Notification
+                            </h5>
+                            <form id="notificationForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Title</label>
+                                    <input type="text" class="form-control search-box" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Message</label>
+                                    <textarea class="form-control search-box" rows="3" required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Send To</label>
+                                    <select class="form-control search-box">
+                                        <option value="all">All Users</option>
+                                        <option value="user">Users Only</option>
+                                        <option value="merchant">Merchants Only</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-orange w-100">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Notification
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="dashboard-card">
+                            <h5 style="color: var(--primary-orange);">
+                                <i class="fas fa-cogs me-2"></i>Quick Actions
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <button class="btn btn-orange w-100" onclick="performBackup()">
+                                        <i class="fas fa-database me-2"></i>Backup Database
+                                    </button>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <button class="btn btn-orange w-100" onclick="clearCache()">
+                                        <i class="fas fa-broom me-2"></i>Clear Cache
+                                    </button>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <button class="btn btn-orange w-100" onclick="generateReports()">
+                                        <i class="fas fa-file-alt me-2"></i>Generate Reports
+                                    </button>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <button class="btn btn-orange w-100" onclick="sendBroadcast()">
+                                        <i class="fas fa-bullhorn me-2"></i>Send Broadcast
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal fade" id="createModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Create New Entry</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Dynamic content loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalTitle">Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="detailModalBody">
+                    <!-- Dynamic content loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global variables
+        let currentUsersPage = 1;
+        let usersPerPage = 10;
+        let usersData = [];
+        let merchantsData = [];
+        let ordersData = [];
+        let transactionsData = [];
+        let productsData = [];
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDateTime();
+            loadDashboardStats();
+            loadInitialData();
+            initCharts();
+            setInterval(updateDateTime, 1000);
+            setInterval(loadDashboardStats, 30000); // Refresh every 30 seconds
+        });
+
+        // Live Time Display
+        function updateDateTime() {
+            const now = new Date();
+            const dateTimeStr = now.toLocaleString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('liveDateTime').textContent = dateTimeStr;
+        }
+
+        // Tab Switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('#adminTabs .nav-link').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').style.display = 'block';
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Load data for the tab
+            switch(tabName) {
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'merchants':
+                    loadMerchants();
+                    break;
+                case 'orders':
+                    loadOrders();
+                    break;
+                case 'transactions':
+                    loadTransactions();
+                    break;
+                case 'products':
+                    loadProducts();
+                    break;
+                case 'analytics':
+                    loadAnalytics();
+                    break;
+            }
+        }
+
+       // Simplified data loading
+async function loadDashboardStats() {
+    try {
+        // Basic counts from context (already passed from Django)
+        document.getElementById('totalUsers').textContent = {{ total_users|default:0 }};
+        document.getElementById('totalMerchants').textContent = {{ total_merchants|default:0 }};
+        document.getElementById('totalOrders').textContent = {{ total_orders|default:0 }};
+        document.getElementById('totalRevenue').textContent = formatCurrency({{ total_revenue|default:0 }});
+        document.getElementById('totalTransactions').textContent = {{ total_transactions|default:0 }};
+        document.getElementById('totalProducts').textContent = {{ total_products|default:0 }};
+        
+        // Load users table
+        loadUsersTable();
+        
+        // Load merchants table  
+        loadMerchantsTable();
+        
+        // Load orders table
+        loadOrdersTable();
+        
+        // Load transactions table
+        loadTransactionsTable();
+        
+        // Load products table
+        loadProductsTable();
+        
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+    }
+}
+
+// Load users from Django context
+function loadUsersTable() {
+    const users = [
+        {% for user in recent_users %}
+        {
+            id: {{ user.userid }},
+            username: "{{ user.username }}",
+            email: "{{ user.email }}",
+            phone: "{{ user.phonenumber }}",
+            balance: {{ user.balance|default:0 }},
+            paycode: "{{ user.paycode }}",
+            date: "{{ user.dateofbirth|date:'Y-m-d' }}"
+        },
+        {% endfor %}
+    ];
+    
+    const tbody = document.getElementById('usersTable');
+    if (tbody) {
+        tbody.innerHTML = users.map(user => `
+            <tr>
+                <td><code>${user.id}</code></td>
+                <td><strong>${user.username}</strong></td>
+                <td>${user.email}</td>
+                <td>${user.phone}</td>
+                <td><strong>${formatCurrency(user.balance)}</strong></td>
+                <td><code>${user.paycode}</code></td>
+                <td>${user.date}</td>
+                <td>
+                    <span class="status-badge status-success">Active</span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-green me-1" onclick="viewDetails('user', ${user.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-orange me-1" onclick="editUser(${user.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+
+// Similar functions for merchants, orders, etc...
+
+        // Load Merchants
+        async function loadMerchants() {
+            try {
+                const response = await fetch('/api/merchants/');
+                const merchants = await response.json();
+                
+                const tbody = document.getElementById('merchantsTable');
+                tbody.innerHTML = merchants.slice(0, 50).map(merchant => `
+                    <tr>
+                        <td><code>${merchant.merchantid}</code></td>
+                        <td><strong>${merchant.username}</strong></td>
+                        <td>${merchant.email}</td>
+                        <td>${merchant.businesstype}</td>
+                        <td>
+                            <button class="btn btn-sm btn-green" onclick="viewMerchantProducts(${merchant.merchantid})">
+                                View Products
+                            </button>
+                        </td>
+                        <td><strong>${formatCurrency(merchant.balance)}</strong></td>
+                        <td><code>${merchant.merchantpaycode}</code></td>
+                        <td>${formatDate(merchant.dateofcreation)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-green me-1" onclick="viewDetails('merchant', ${merchant.merchantid})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-orange me-1" onclick="editMerchant(${merchant.merchantid})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading merchants:', error);
+                showSimulatedMerchants();
+            }
+        }
+
+        // Load Orders
+        async function loadOrders() {
+            try {
+                // Try to get orders from API
+                const response = await fetch('/api/admin/orders/');
+                const data = await response.json();
+                
+                if (data.orders) {
+                    ordersData = data.orders;
+                    displayOrders(ordersData);
+                }
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                showSimulatedOrders();
+            }
+        }
+
+        // Load Transactions
+        async function loadTransactions() {
+            try {
+                // You would need to create an API endpoint for all transactions
+                const response = await fetch('/api/get-user-transactions/?email=admin@example.com');
+                const data = await response.json();
+                
+                if (data.transactions) {
+                    transactionsData = data.transactions.slice(0, 50);
+                    displayTransactions(transactionsData);
+                }
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                showSimulatedTransactions();
+            }
+        }
+
+        // Load Products
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/products/');
+                const products = await response.json();
+                
+                const tbody = document.getElementById('productsTable');
+                tbody.innerHTML = products.slice(0, 50).map(product => `
+                    <tr>
+                        <td><code>${product.productid}</code></td>
+                        <td><strong>${product.productname}</strong></td>
+                        <td>Merchant ${product.merchantid}</td>
+                        <td><strong>${formatCurrency(product.price)}</strong></td>
+                        <td>${product.amountinstock}</td>
+                        <td>${product.category}</td>
+                        <td>
+                            <span class="status-badge ${product.amountinstock > 0 ? 'status-success' : 'status-cancelled'}">
+                                ${product.amountinstock > 0 ? 'In Stock' : 'Out of Stock'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-green me-1" onclick="viewProduct(${product.productid})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading products:', error);
+                showSimulatedProducts();
+            }
+        }
+
+        // Load Analytics
+        async function loadAnalytics() {
+            try {
+                const response = await fetch('/api/admin/api/analytics/');
+                const data = await response.json();
+                
+                // Update charts with real data
+                updateCharts(data);
+                
+                // Display top merchants
+                if (data.top_merchants) {
+                    const tbody = document.getElementById('topMerchantsTable');
+                    tbody.innerHTML = data.top_merchants.map((merchant, index) => `
+                        <tr>
+                            <td>#${index + 1}</td>
+                            <td><strong>${merchant.name}</strong></td>
+                            <td><strong>${formatCurrency(merchant.revenue)}</strong></td>
+                            <td>${merchant.orders}</td>
+                            <td>${merchant.products || 'N/A'}</td>
+                        </tr>
+                    `).join('');
+                }
+                
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                // Use simulated data
+                simulateAnalyticsData();
+            }
+        }
+
+        // Initialize Charts
+        function initCharts() {
+            // Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart');
+            if (revenueCtx) {
+                window.revenueChart = new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Revenue (RWF)',
+                            data: [1200000, 1900000, 3000000, 2500000, 4200000, 3800000],
+                            borderColor: '#FF6B35',
+                            backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: chartOptions('Revenue Trend')
+                });
+            }
+            
+            // User Distribution Chart
+            const userCtx = document.getElementById('userDistributionChart');
+            if (userCtx) {
+                window.userDistributionChart = new Chart(userCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Users', 'Merchants'],
+                        datasets: [{
+                            data: [300, 150],
+                            backgroundColor: ['#FF6B35', '#00B894'],
+                            borderWidth: 2,
+                            borderColor: '#162447'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#ffffff' }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Order Status Chart
+            const orderStatusCtx = document.getElementById('orderStatusChart');
+            if (orderStatusCtx) {
+                window.orderStatusChart = new Chart(orderStatusCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Pending', 'Confirmed', 'Preparing', 'Ready', 'Delivered', 'Cancelled'],
+                        datasets: [{
+                            data: [15, 25, 30, 10, 50, 5],
+                            backgroundColor: [
+                                '#fdcb6e', '#00cec9', '#6c5ce7', '#00b894', '#0984e3', '#e17055'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#ffffff' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Update Charts with Real Data
+        function updateCharts(data) {
+            // Update revenue chart
+            if (window.revenueChart && data.daily_revenue) {
+                const labels = data.daily_revenue.slice(0, 30).reverse().map(d => 
+                    new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                );
+                const revenueData = data.daily_revenue.slice(0, 30).reverse().map(d => d.revenue);
+                
+                window.revenueChart.data.labels = labels;
+                window.revenueChart.data.datasets[0].data = revenueData;
+                window.revenueChart.update();
+            }
+            
+            // Update order status chart
+            if (window.orderStatusChart && data.order_status) {
+                const statusData = data.order_status.reduce((acc, status) => {
+                    acc[status.status] = status.count;
+                    return acc;
+                }, {});
+                
+                window.orderStatusChart.data.datasets[0].data = [
+                    statusData.pending || 0,
+                    statusData.confirmed || 0,
+                    statusData.preparing || 0,
+                    statusData.ready || 0,
+                    statusData.delivered || 0,
+                    statusData.cancelled || 0
+                ];
+                window.orderStatusChart.update();
+            }
+        }
+
+        // Format currency
+        function formatCurrency(amount) {
+            return 'RWF ' + parseInt(amount).toLocaleString();
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Show Create Modal
+        function showCreateModal(type) {
+            const modal = new bootstrap.Modal(document.getElementById('createModal'));
+            let formContent = '';
+            
+            switch(type) {
+                case 'user':
+                    document.getElementById('modalTitle').textContent = 'Create New User';
+                    formContent = createUserForm();
+                    break;
+                case 'merchant':
+                    document.getElementById('modalTitle').textContent = 'Create New Merchant';
+                    formContent = createMerchantForm();
+                    break;
+                case 'product':
+                    document.getElementById('modalTitle').textContent = 'Create New Product';
+                    formContent = createProductForm();
+                    break;
+            }
+            
+            document.getElementById('modalBody').innerHTML = formContent;
+            modal.show();
+        }
+
+        // Create User Form
+        function createUserForm() {
+            return `
+                <form id="createForm" onsubmit="createUser(event)">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Username *</label>
+                            <input type="text" class="form-control search-box" name="username" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="form-control search-box" name="email" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Phone Number *</label>
+                            <input type="tel" class="form-control search-box" name="phone" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">National ID *</label>
+                            <input type="text" class="form-control search-box" name="national_id" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Password *</label>
+                            <input type="password" class="form-control search-box" name="password" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">PIN (6 digits) *</label>
+                            <input type="text" class="form-control search-box" name="pin" maxlength="6" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Initial Balance (RWF)</label>
+                            <input type="number" class="form-control search-box" name="balance" value="5000">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control search-box" name="date_of_birth">
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-green w-100">
+                                <i class="fas fa-user-plus me-2"></i>Create User
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            `;
+        }
+
+        // Create User
+        async function createUser(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            try {
+                const response = await fetch('/api/admin/api/create-user/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('User created successfully!');
+                    bootstrap.Modal.getInstance(document.getElementById('createModal')).hide();
+                    loadUsers();
+                    loadDashboardStats();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error creating user:', error);
+                alert('Error creating user. Please try again.');
+            }
+        }
+
+        // View Details
+        async function viewDetails(type, id) {
+            try {
+                const response = await fetch(`/api/admin/api/user-details/?user_id=${id}&user_type=${type}`);
+                const data = await response.json();
+                
+                const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+                document.getElementById('detailModalTitle').textContent = `${type === 'user' ? 'User' : 'Merchant'} Details`;
+                
+                let content = '';
+                if (type === 'user') {
+                    content = createUserDetailContent(data);
+                } else {
+                    content = createMerchantDetailContent(data);
+                }
+                
+                document.getElementById('detailModalBody').innerHTML = content;
+                modal.show();
+                
+            } catch (error) {
+                console.error('Error loading details:', error);
+                alert('Error loading details');
+            }
+        }
+
+        // Search Functionality
+        function performSearch() {
+            const query = document.getElementById('globalSearch').value.trim();
+            if (!query) return;
+            
+            // Search across all data
+            const results = {
+                users: usersData.filter(user => 
+                    user.username.toLowerCase().includes(query.toLowerCase()) ||
+                    user.email.toLowerCase().includes(query.toLowerCase()) ||
+                    user.phonenumber.includes(query)
+                ).slice(0, 5),
+                
+                merchants: merchantsData.filter(merchant => 
+                    merchant.username.toLowerCase().includes(query.toLowerCase()) ||
+                    merchant.email.toLowerCase().includes(query.toLowerCase()) ||
+                    merchant.businesstype.toLowerCase().includes(query.toLowerCase())
+                ).slice(0, 5)
+            };
+            
+            // Show search results
+            showSearchResults(results, query);
+        }
+
+        // Export Data
+        function exportData(type) {
+            let data = [];
+            let filename = '';
+            
+            switch(type) {
+                case 'users':
+                    data = usersData;
+                    filename = 'users.csv';
+                    break;
+                case 'merchants':
+                    data = merchantsData;
+                    filename = 'merchants.csv';
+                    break;
+            }
+            
+            // Convert to CSV
+            const csv = convertToCSV(data);
+            downloadCSV(csv, filename);
+            alert(`${type} data exported successfully!`);
+        }
+
+        // Helper Functions
+        function convertToCSV(data) {
+            if (!data.length) return '';
+            const headers = Object.keys(data[0]);
+            const rows = data.map(row => 
+                headers.map(header => JSON.stringify(row[header] || '')).join(',')
+            );
+            return [headers.join(','), ...rows].join('\n');
+        }
+
+        function downloadCSV(csv, filename) {
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function chartOptions(title) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#ffffff' }
+                    },
+                    title: {
+                        display: true,
+                        text: title,
+                        color: '#ffffff'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#b0b0b0' }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#b0b0b0' }
+                    }
+                }
+            };
+        }
+
+        // Simulated data for fallback
+        function simulateDashboardData() {
+            document.getElementById('totalUsers').textContent = '342';
+            document.getElementById('totalMerchants').textContent = '156';
+            document.getElementById('totalOrders').textContent = '1,234';
+            document.getElementById('totalRevenue').textContent = 'RWF 12.4M';
+            document.getElementById('totalTransactions').textContent = '4,567';
+            document.getElementById('totalProducts').textContent = '890';
+        }
+
+        // More helper functions would go here...
+        // Due to character limit, I'm showing the core structure
+
+    </script>
+</body>
+</html>

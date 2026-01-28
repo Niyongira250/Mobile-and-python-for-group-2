@@ -1,0 +1,380 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dashboard-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 style="color: var(--primary-orange);">
+                        <i class="fas fa-users me-2"></i>Users Management
+                    </h4>
+                    <div>
+                        <button class="btn btn-orange me-2" onclick="exportUsers()">
+                            <i class="fas fa-download me-2"></i>Export
+                        </button>
+                        <button class="btn btn-green" onclick="showCreateModal('user')">
+                            <i class="fas fa-user-plus me-2"></i>Add User
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dashboard-card p-4">
+                <h6 class="mb-3" style="color: var(--primary-orange);">Filters</h6>
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <input type="text" class="form-control search-box" placeholder="Search by name..." id="userSearch">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <input type="text" class="form-control search-box" placeholder="Search by email..." id="emailSearch">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <input type="text" class="form-control search-box" placeholder="Search by phone..." id="phoneSearch">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-orange w-100" onclick="filterUsers()">
+                            <i class="fas fa-filter me-2"></i>Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Users Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="dashboard-card p-4">
+                <div class="table-responsive">
+                    <table class="table data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Profile</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Balance</th>
+                                <th>Created</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                            <!-- Users will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                <nav aria-label="Page navigation" class="mt-3">
+                    <ul class="pagination justify-content-center" id="usersPagination">
+                        <!-- Pagination will be generated here -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Detail Modal -->
+<div class="modal fade" id="userDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- User Info -->
+                    <div class="col-md-4">
+                        <div class="text-center mb-4">
+                            <img src="https://via.placeholder.com/150" class="rounded-circle mb-3" alt="Profile" style="width: 150px; height: 150px; object-fit: cover;">
+                            <h4 id="detailUserName">John Doe</h4>
+                            <p class="text-muted" id="detailUserEmail">john@example.com</p>
+                            <span class="status-badge status-success">Active</span>
+                        </div>
+                        <div class="mb-3">
+                            <h6 style="color: var(--primary-orange);">Account Information</h6>
+                            <p><strong>User ID:</strong> <span id="detailUserId">U12345</span></p>
+                            <p><strong>National ID:</strong> <span id="detailNationalId">1234567890</span></p>
+                            <p><strong>Paycode:</strong> <code id="detailPaycode">UP123456</code></p>
+                            <p><strong>PIN:</strong> <code id="detailPin">******</code></p>
+                            <p><strong>Date of Birth:</strong> <span id="detailDob">1990-01-01</span></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Transactions -->
+                    <div class="col-md-8">
+                        <h6 style="color: var(--primary-orange);">Recent Transactions</h6>
+                        <div class="table-responsive">
+                            <table class="table data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>To/From</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userTransactions">
+                                    <!-- Transactions loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h6 style="color: var(--primary-orange);">Quick Actions</h6>
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <button class="btn btn-green w-100" onclick="adjustBalance()">
+                                        <i class="fas fa-money-bill-wave me-2"></i>Adjust Balance
+                                    </button>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <button class="btn btn-orange w-100" onclick="resetPassword()">
+                                        <i class="fas fa-key me-2"></i>Reset Password
+                                    </button>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <button class="btn btn-danger w-100" onclick="disableUser()">
+                                        <i class="fas fa-ban me-2"></i>Disable Account
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Users Data
+    let usersData = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    
+    // Load Users
+    async function loadUsers() {
+        try {
+            // Simulate API call - In real implementation, call your Django view
+            // const response = await fetch('/api/admin/users/');
+            // usersData = await response.json();
+            
+            // Simulated data
+            usersData = Array.from({length: 45}, (_, i) => ({
+                id: 1000 + i,
+                username: `User${i + 1}`,
+                email: `user${i + 1}@example.com`,
+                phone: `+25078${String(1000000 + i).slice(1)}`,
+                balance: Math.floor(Math.random() * 100000) + 1000,
+                date_joined: new Date(Date.now() - Math.random() * 31536000000).toISOString().split('T')[0],
+                status: Math.random() > 0.1 ? 'active' : 'inactive',
+                national_id: `12345678${String(i).padStart(2, '0')}`,
+                paycode: `UP${String(100000 + i).slice(1)}`,
+                profile_pic: 'https://via.placeholder.com/50'
+            }));
+            
+            renderUsersTable();
+            renderPagination();
+            
+        } catch (error) {
+            console.error('Error loading users:', error);
+        }
+    }
+    
+    // Render Users Table
+    function renderUsersTable() {
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pageUsers = usersData.slice(start, end);
+        
+        const tbody = document.getElementById('usersTable');
+        tbody.innerHTML = pageUsers.map(user => `
+            <tr>
+                <td><code>${user.id}</code></td>
+                <td>
+                    <img src="${user.profile_pic}" 
+                         class="rounded-circle" 
+                         style="width: 40px; height: 40px; object-fit: cover;"
+                         alt="${user.username}">
+                </td>
+                <td><strong>${user.username}</strong></td>
+                <td>${user.email}</td>
+                <td>${user.phone}</td>
+                <td><strong>RWF ${user.balance.toLocaleString()}</strong></td>
+                <td>${user.date_joined}</td>
+                <td>
+                    <span class="status-badge ${user.status === 'active' ? 'status-success' : 'status-cancelled'}">
+                        ${user.status}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-green me-1" onclick="viewUserDetails(${user.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-orange me-1" onclick="editUser(${user.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+    // Render Pagination
+    function renderPagination() {
+        const totalPages = Math.ceil(usersData.length / itemsPerPage);
+        const pagination = document.getElementById('usersPagination');
+        
+        let html = `
+            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
+            </li>
+        `;
+        
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                html += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                    </li>
+                `;
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+            }
+        }
+        
+        html += `
+            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
+            </li>
+        `;
+        
+        pagination.innerHTML = html;
+    }
+    
+    // Change Page
+    function changePage(page) {
+        if (page < 1 || page > Math.ceil(usersData.length / itemsPerPage)) return;
+        currentPage = page;
+        renderUsersTable();
+        renderPagination();
+    }
+    
+    // Filter Users
+    function filterUsers() {
+        const nameFilter = document.getElementById('userSearch').value.toLowerCase();
+        const emailFilter = document.getElementById('emailSearch').value.toLowerCase();
+        const phoneFilter = document.getElementById('phoneSearch').value.toLowerCase();
+        
+        // In real implementation, this would be an API call with filters
+        alert(`Filters applied:\nName: ${nameFilter}\nEmail: ${emailFilter}\nPhone: ${phoneFilter}`);
+    }
+    
+    // View User Details
+    function viewUserDetails(userId) {
+        const user = usersData.find(u => u.id === userId);
+        if (!user) return;
+        
+        // Update modal content
+        document.getElementById('detailUserName').textContent = user.username;
+        document.getElementById('detailUserEmail').textContent = user.email;
+        document.getElementById('detailUserId').textContent = user.id;
+        document.getElementById('detailNationalId').textContent = user.national_id;
+        document.getElementById('detailPaycode').textContent = user.paycode;
+        document.getElementById('detailDob').textContent = '1990-01-01'; // Add DOB to your data
+        
+        // Load user transactions
+        loadUserTransactions(userId);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('userDetailModal'));
+        modal.show();
+    }
+    
+    // Load User Transactions
+    async function loadUserTransactions(userId) {
+        // Simulate API call
+        const transactions = Array.from({length: 5}, (_, i) => ({
+            date: new Date(Date.now() - i * 86400000).toLocaleDateString(),
+            type: i % 2 === 0 ? 'Sent' : 'Received',
+            amount: Math.floor(Math.random() * 50000) + 1000,
+            counterparty: i % 2 === 0 ? 'Merchant' + i : 'User' + i,
+            status: 'Success'
+        }));
+        
+        const tbody = document.getElementById('userTransactions');
+        tbody.innerHTML = transactions.map(t => `
+            <tr>
+                <td>${t.date}</td>
+                <td>
+                    <span class="status-badge ${t.type === 'Sent' ? 'status-cancelled' : 'status-success'}">
+                        ${t.type}
+                    </span>
+                </td>
+                <td><strong>RWF ${t.amount.toLocaleString()}</strong></td>
+                <td>${t.counterparty}</td>
+                <td><span class="status-badge status-success">${t.status}</span></td>
+            </tr>
+        `).join('');
+    }
+    
+    // Edit User
+    function editUser(userId) {
+        alert(`Edit user ${userId}\nThis would open an edit form.`);
+    }
+    
+    // Delete User
+    function deleteUser(userId) {
+        if (confirm(`Are you sure you want to delete user ${userId}?`)) {
+            alert(`User ${userId} deleted successfully.`);
+            // In real implementation: Call DELETE API
+        }
+    }
+    
+    // Export Users
+    function exportUsers() {
+        alert('Exporting users to CSV...');
+        // In real implementation: Generate and download CSV
+    }
+    
+    // Action Functions
+    function adjustBalance() {
+        const amount = prompt('Enter adjustment amount (+ for add, - for subtract):');
+        if (amount) {
+            alert(`Adjusting balance by RWF ${amount}`);
+        }
+    }
+    
+    function resetPassword() {
+        if (confirm('Reset user password to default?')) {
+            alert('Password reset successfully.');
+        }
+    }
+    
+    function disableUser() {
+        if (confirm('Disable this user account?')) {
+            alert('User account disabled.');
+        }
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', loadUsers);
+</script>
+{% endblock %}

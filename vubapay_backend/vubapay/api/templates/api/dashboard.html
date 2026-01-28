@@ -1,0 +1,354 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card p-4">
+                <div class="text-center">
+                    <i class="fas fa-users card-icon"></i>
+                    <h2 class="card-value" id="totalUsers">0</h2>
+                    <p class="card-label">Total Users</p>
+                    <button class="btn btn-green btn-sm mt-2" onclick="loadUsers()">
+                        View All
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card p-4">
+                <div class="text-center">
+                    <i class="fas fa-store card-icon"></i>
+                    <h2 class="card-value" id="totalMerchants">0</h2>
+                    <p class="card-label">Total Merchants</p>
+                    <button class="btn btn-green btn-sm mt-2" onclick="loadMerchants()">
+                        View All
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card p-4">
+                <div class="text-center">
+                    <i class="fas fa-shopping-cart card-icon"></i>
+                    <h2 class="card-value" id="totalOrders">0</h2>
+                    <p class="card-label">Total Orders</p>
+                    <button class="btn btn-green btn-sm mt-2" onclick="loadOrders()">
+                        View All
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card p-4">
+                <div class="text-center">
+                    <i class="fas fa-chart-line card-icon"></i>
+                    <h2 class="card-value" id="totalRevenue">0</h2>
+                    <p class="card-label">Total Revenue</p>
+                    <button class="btn btn-green btn-sm mt-2" onclick="loadTransactions()">
+                        View All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-4">
+            <div class="chart-container">
+                <h5 class="mb-3" style="color: var(--primary-orange);">
+                    <i class="fas fa-chart-line me-2"></i>Revenue Trend
+                </h5>
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="chart-container">
+                <h5 class="mb-3" style="color: var(--primary-orange);">
+                    <i class="fas fa-user-friends me-2"></i>User Distribution
+                </h5>
+                <canvas id="userChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dashboard-card p-4">
+                <h5 class="mb-3" style="color: var(--primary-orange);">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-orange w-100" onclick="showCreateModal('user')">
+                            <i class="fas fa-user-plus me-2"></i>Create User
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-orange w-100" onclick="showCreateModal('merchant')">
+                            <i class="fas fa-store-alt me-2"></i>Create Merchant
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-orange w-100" onclick="showCreateModal('product')">
+                            <i class="fas fa-box me-2"></i>Create Product
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-orange w-100" onclick="showCreateModal('notification')">
+                            <i class="fas fa-bell me-2"></i>Send Notification
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="dashboard-card p-4">
+                <h5 class="mb-3" style="color: var(--primary-orange);">
+                    <i class="fas fa-history me-2"></i>Recent Transactions
+                </h5>
+                <div class="table-responsive">
+                    <table class="table data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Amount</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentTransactions">
+                            <!-- Transactions will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="dashboard-card p-4">
+                <h5 class="mb-3" style="color: var(--primary-orange);">
+                    <i class="fas fa-clock me-2"></i>System Timeline
+                </h5>
+                <div class="timeline" id="systemTimeline">
+                    <!-- Timeline items will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Create New Entry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Load Dashboard Stats
+    async function loadDashboardStats() {
+        try {
+            // In real implementation, these would be API calls
+            // For now, we'll simulate with static data
+            document.getElementById('totalUsers').textContent = '342';
+            document.getElementById('totalMerchants').textContent = '156';
+            document.getElementById('totalOrders').textContent = '1,234';
+            document.getElementById('totalRevenue').textContent = 'RWF 12.4M';
+            
+            // Load recent transactions
+            const transactions = [
+                {id: 'TXN78901', from: 'John Doe', to: 'Pizza Shop', amount: '4,500', time: '2 mins ago'},
+                {id: 'TXN78902', from: 'Sarah Smith', to: 'Tech Store', amount: '25,000', time: '15 mins ago'},
+                {id: 'TXN78903', from: 'Mike Johnson', to: 'Coffee Cafe', amount: '3,200', time: '32 mins ago'},
+                {id: 'TXN78904', from: 'Emma Wilson', to: 'Book Store', amount: '8,750', time: '1 hour ago'},
+                {id: 'TXN78905', from: 'Robert Brown', to: 'Grocery Mart', amount: '12,300', time: '2 hours ago'}
+            ];
+            
+            const tbody = document.getElementById('recentTransactions');
+            tbody.innerHTML = transactions.map(t => `
+                <tr>
+                    <td><code>${t.id}</code></td>
+                    <td>${t.from}</td>
+                    <td>${t.to}</td>
+                    <td><strong>RWF ${t.amount}</strong></td>
+                    <td><small>${t.time}</small></td>
+                </tr>
+            `).join('');
+            
+            // Load timeline
+            const timeline = document.getElementById('systemTimeline');
+            const timelineData = [
+                {time: '10:30 AM', event: 'New merchant registered: "Fresh Seafood"', type: 'merchant'},
+                {time: '09:45 AM', event: 'System backup completed successfully', type: 'system'},
+                {time: '08:20 AM', event: 'User "Alice" updated profile information', type: 'user'},
+                {time: 'Yesterday', event: 'Revenue reached daily target of RWF 500,000', type: 'revenue'},
+                {time: 'Yesterday', event: 'New product added to "Bakery Shop"', type: 'product'}
+            ];
+            
+            timeline.innerHTML = timelineData.map(item => `
+                <div class="timeline-item">
+                    <h6 style="color: var(--secondary-green);">${item.time}</h6>
+                    <p>${item.event}</p>
+                </div>
+            `).join('');
+            
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+        }
+    }
+    
+    // Show Create Modal
+    function showCreateModal(type) {
+        const modal = new bootstrap.Modal(document.getElementById('createModal'));
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        
+        let formContent = '';
+        
+        switch(type) {
+            case 'user':
+                modalTitle.textContent = 'Create New User';
+                formContent = `
+                    <form id="createUserForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">National ID</label>
+                                <input type="text" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">PIN</label>
+                                <input type="text" class="form-control" maxlength="6" required>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-green w-100">Create User</button>
+                            </div>
+                        </div>
+                    </form>
+                `;
+                break;
+                
+            case 'merchant':
+                modalTitle.textContent = 'Create New Merchant';
+                formContent = `
+                    <form id="createMerchantForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Business Name</label>
+                                <input type="text" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Business Type</label>
+                                <select class="form-control">
+                                    <option>Restaurant</option>
+                                    <option>Retail</option>
+                                    <option>Services</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">National ID</label>
+                                <input type="text" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Initial Balance (RWF)</label>
+                                <input type="number" class="form-control" value="5000" required>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-green w-100">Create Merchant</button>
+                            </div>
+                        </div>
+                    </form>
+                `;
+                break;
+        }
+        
+        modalBody.innerHTML = formContent;
+        modal.show();
+        
+        // Add form submission handlers
+        document.getElementById('createUserForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('User creation would be processed here');
+            modal.hide();
+        });
+        
+        document.getElementById('createMerchantForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Merchant creation would be processed here');
+            modal.hide();
+        });
+    }
+    
+    // Navigation Functions
+    function loadUsers() {
+        window.location.href = "{% url 'admin_users' %}";
+    }
+    
+    function loadMerchants() {
+        window.location.href = "{% url 'admin_merchants' %}";
+    }
+    
+    function loadOrders() {
+        window.location.href = "{% url 'admin_orders' %}";
+    }
+    
+    function loadTransactions() {
+        window.location.href = "{% url 'admin_transactions' %}";
+    }
+    
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardStats();
+        // Refresh stats every 30 seconds
+        setInterval(loadDashboardStats, 30000);
+    });
+</script>
+{% endblock %}

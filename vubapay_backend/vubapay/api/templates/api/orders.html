@@ -1,0 +1,386 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dashboard-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 style="color: var(--primary-orange);">
+                        <i class="fas fa-shopping-cart me-2"></i>Orders Management
+                    </h4>
+                    <div class="d-flex">
+                        <select class="form-control me-2 search-box" id="statusFilter" onchange="filterOrders()">
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="preparing">Preparing</option>
+                            <option value="ready">Ready</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        <input type="date" class="form-control me-2 search-box" id="dateFilter" onchange="filterOrders()">
+                        <button class="btn btn-green" onclick="refreshOrders()">
+                            <i class="fas fa-sync-alt me-2"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Orders Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-6 mb-3">
+            <div class="dashboard-card p-3 text-center">
+                <h6 class="card-label">Pending</h6>
+                <h3 class="card-value" style="color: #fdcb6e;" id="pendingOrders">0</h3>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="dashboard-card p-3 text-center">
+                <h6 class="card-label">Confirmed</h6>
+                <h3 class="card-value" style="color: #00cec9;" id="confirmedOrders">0</h3>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="dashboard-card p-3 text-center">
+                <h6 class="card-label">Preparing</h6>
+                <h3 class="card-value" style="color: #6c5ce7;" id="preparingOrders">0</h3>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="dashboard-card p-3 text-center">
+                <h6 class="card-label">Ready</h6>
+                <h3 class="card-value" style="color: #00b894;" id="readyOrders">0</h3>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="dashboard-card p-3 text-center">
+                <h6 class="card-label">Delivered</h6>
+                <h3 class="card-value" style="color: #0984e3;" id="deliveredOrders">0</h3>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="dashboard-card p-3 text-center">
+                <h6 class="card-label">Cancelled</h6>
+                <h3 class="card-value" style="color: #e17055;" id="cancelledOrders">0</h3>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Orders Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="dashboard-card p-4">
+                <div class="table-responsive">
+                    <table class="table data-table">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Merchant</th>
+                                <th>Items</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Payment</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTable">
+                            <!-- Orders loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <nav aria-label="Page navigation" class="mt-3">
+                    <ul class="pagination justify-content-center" id="ordersPagination">
+                        <!-- Pagination -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="modal fade" id="orderDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Order Details - #<span id="orderNumber"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Order details loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Orders Management Functions
+    let ordersData = [];
+    
+    async function loadOrders() {
+        try {
+            // Simulated orders data
+            ordersData = Array.from({length: 50}, (_, i) => {
+                const statuses = ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'];
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                const amount = Math.floor(Math.random() * 50000) + 1000;
+                const isPaid = Math.random() > 0.2;
+                
+                return {
+                    id: 10000 + i,
+                    order_number: `ORD${String(10000 + i).slice(1)}`,
+                    customer_name: `Customer ${i + 1}`,
+                    merchant_name: `Merchant ${Math.floor(i / 5) + 1}`,
+                    items_count: Math.floor(Math.random() * 5) + 1,
+                    total_amount: amount,
+                    status: status,
+                    is_paid: isPaid,
+                    created_at: new Date(Date.now() - Math.random() * 604800000).toISOString(),
+                    items: Array.from({length: Math.floor(Math.random() * 3) + 1}, (_, j) => ({
+                        name: `Product ${j + 1}`,
+                        quantity: Math.floor(Math.random() * 3) + 1,
+                        price: Math.floor(amount / 3)
+                    }))
+                };
+            });
+            
+            updateOrderStats();
+            renderOrdersTable();
+            
+        } catch (error) {
+            console.error('Error loading orders:', error);
+        }
+    }
+    
+    function updateOrderStats() {
+        const stats = {
+            pending: ordersData.filter(o => o.status === 'pending').length,
+            confirmed: ordersData.filter(o => o.status === 'confirmed').length,
+            preparing: ordersData.filter(o => o.status === 'preparing').length,
+            ready: ordersData.filter(o => o.status === 'ready').length,
+            delivered: ordersData.filter(o => o.status === 'delivered').length,
+            cancelled: ordersData.filter(o => o.status === 'cancelled').length
+        };
+        
+        document.getElementById('pendingOrders').textContent = stats.pending;
+        document.getElementById('confirmedOrders').textContent = stats.confirmed;
+        document.getElementById('preparingOrders').textContent = stats.preparing;
+        document.getElementById('readyOrders').textContent = stats.ready;
+        document.getElementById('deliveredOrders').textContent = stats.delivered;
+        document.getElementById('cancelledOrders').textContent = stats.cancelled;
+    }
+    
+    function renderOrdersTable() {
+        const tbody = document.getElementById('ordersTable');
+        
+        tbody.innerHTML = ordersData.map(order => `
+            <tr>
+                <td>
+                    <strong>${order.order_number}</strong>
+                    ${order.is_paid ? '<i class="fas fa-check-circle text-success ms-1"></i>' : ''}
+                </td>
+                <td>${order.customer_name}</td>
+                <td>${order.merchant_name}</td>
+                <td>
+                    <span class="badge bg-secondary">${order.items_count} items</span>
+                </td>
+                <td><strong>RWF ${order.total_amount.toLocaleString()}</strong></td>
+                <td>
+                    <span class="status-badge status-${getStatusColor(order.status)}">
+                        ${order.status.toUpperCase()}
+                    </span>
+                </td>
+                <td>
+                    ${order.is_paid ? 
+                        '<span class="badge bg-success">Paid</span>' : 
+                        '<span class="badge bg-warning">Unpaid</span>'
+                    }
+                </td>
+                <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                <td>
+                    <button class="btn btn-sm btn-green me-1" onclick="viewOrderDetails(${order.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-orange me-1" onclick="updateOrderStatus(${order.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="cancelOrder(${order.id})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+    function getStatusColor(status) {
+        const colors = {
+            pending: 'warning',
+            confirmed: 'info',
+            preparing: 'primary',
+            ready: 'success',
+            delivered: 'success',
+            cancelled: 'danger'
+        };
+        return colors[status] || 'secondary';
+    }
+    
+    function viewOrderDetails(orderId) {
+        const order = ordersData.find(o => o.id === orderId);
+        if (!order) return;
+        
+        document.getElementById('orderNumber').textContent = order.order_number;
+        
+        const modalBody = document.querySelector('#orderDetailModal .modal-body');
+        modalBody.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 style="color: var(--primary-orange);">Order Information</h6>
+                    <table class="table">
+                        <tr>
+                            <td><strong>Order ID:</strong></td>
+                            <td>${order.id}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Customer:</strong></td>
+                            <td>${order.customer_name}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Merchant:</strong></td>
+                            <td>${order.merchant_name}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Status:</strong></td>
+                            <td>
+                                <span class="status-badge status-${getStatusColor(order.status)}">
+                                    ${order.status.toUpperCase()}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Payment:</strong></td>
+                            <td>
+                                ${order.is_paid ? 
+                                    '<span class="badge bg-success">Paid</span>' : 
+                                    '<span class="badge bg-warning">Pending Payment</span>'
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Created:</strong></td>
+                            <td>${new Date(order.created_at).toLocaleString()}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="col-md-6">
+                    <h6 style="color: var(--primary-orange);">Order Items</h6>
+                    <div class="table-responsive">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${order.items.map(item => `
+                                    <tr>
+                                        <td>${item.name}</td>
+                                        <td>${item.quantity}</td>
+                                        <td>RWF ${item.price.toLocaleString()}</td>
+                                        <td><strong>RWF ${(item.price * item.quantity).toLocaleString()}</strong></td>
+                                    </tr>
+                                `).join('')}
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Total Amount:</strong></td>
+                                    <td><strong>RWF ${order.total_amount.toLocaleString()}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <h6 style="color: var(--primary-orange);">Order Actions</h6>
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-green w-100" onclick="markAsPaid(${order.id})">
+                            <i class="fas fa-check-circle me-2"></i>Mark as Paid
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-orange w-100" onclick="updateStatus(${order.id})">
+                            <i class="fas fa-edit me-2"></i>Update Status
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-warning w-100" onclick="sendReminder(${order.id})">
+                            <i class="fas fa-bell me-2"></i>Send Reminder
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-danger w-100" onclick="cancelOrder(${order.id})">
+                            <i class="fas fa-times me-2"></i>Cancel Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+        modal.show();
+    }
+    
+    function filterOrders() {
+        const status = document.getElementById('statusFilter').value;
+        const date = document.getElementById('dateFilter').value;
+        
+        // In real implementation: Filter orders based on criteria
+        alert(`Filtering orders by status: ${status}, date: ${date}`);
+    }
+    
+    function refreshOrders() {
+        loadOrders();
+        alert('Orders refreshed!');
+    }
+    
+    // Action Functions
+    function markAsPaid(orderId) {
+        if (confirm('Mark this order as paid?')) {
+            alert(`Order ${orderId} marked as paid.`);
+        }
+    }
+    
+    function updateStatus(orderId) {
+        const newStatus = prompt('Enter new status (pending/confirmed/preparing/ready/delivered/cancelled):');
+        if (newStatus) {
+            alert(`Order ${orderId} status updated to ${newStatus}.`);
+        }
+    }
+    
+    function sendReminder(orderId) {
+        alert(`Reminder sent for order ${orderId}.`);
+    }
+    
+    function cancelOrder(orderId) {
+        if (confirm('Are you sure you want to cancel this order?')) {
+            alert(`Order ${orderId} cancelled.`);
+        }
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', loadOrders);
+</script>
+{% endblock %}
